@@ -180,7 +180,6 @@ class BaseSolver(BaseClass):
             self.summarize(report, 'dev/')
         self.model.train()
 
-
     def summarize(self, pack, prefix='train/'):
         # print(f'\nsummarizing in {self.global_step}')
         for i in pack:
