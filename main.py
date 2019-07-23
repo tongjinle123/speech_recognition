@@ -44,6 +44,7 @@ def train(**kwargs):
     else:
         solver.train_from_scrach()
 
+
 def get_model(from_ckpt, solver_name):
     Solver, solver_config = load_module(solvers, solver_name)
     solver = Solver(solver_config)
