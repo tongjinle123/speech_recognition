@@ -1,0 +1,27 @@
+FROM pytorch/pytorch:1.1.0-cuda10.0-cudnn7.5-devel
+MAINTAINER tongjinle
+RUN apt-get update
+RUN apt-get -q -y install openssh-server python-pip python-tk build-essential python-dev libevent-dev python3-dev
+RUN apt-get install -y libsndfile1 gcc make autoconf openssl portaudio19-dev python-all-dev python3-all-dev
+RUN apt-get install -y vim
+RUN mkdir /var/run/sshd
+RUN sed "s/without-password/yes/g" /etc/ssh/sshd_config > /etc/ssh/sshd_config2
+RUN cp /etc/ssh/sshd_config2 /etc/ssh/sshd_config
+RUN echo 'root:root' | chpasswd
+RUN sed -i 's/PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+ADD requirements.txt requirements.txt
+RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN git clone https://github.com/NVIDIA/apex;cd apex;pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+RUN rm -rf ~/.cache/pip/*
+RUN apt-get clean
+RUN service ssh restart
+EXPOSE 22
+EXPOSE 8022
+EXPOSE 8021
+EXPOSE 8023
+EXPOSE 6006
+EXPOSE 6005
+EXPOSE 6007
+EXPOSE 8888
+EXPOSE 8889
+EXPOSE 8890

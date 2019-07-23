@@ -29,6 +29,6 @@ class BaseModel(BaseClass, t.nn.Module):
     def iterate(self, inputs):
         raise NotImplementedError
 
-    def cal_metric(self, inputs):
+    def cal_metrics(self, inputs):
         raise NotImplementedError
 
