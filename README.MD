@@ -21,4 +21,5 @@ result:
     beam decode with lm cer:7.2 
 
 curves:
-    <img src="images/1563870010489.jpg">
+
+  <img src="images/1563870010489.jpg">
