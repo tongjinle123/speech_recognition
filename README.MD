@@ -20,3 +20,5 @@ result:
 
     beam decode with lm cer:7.2 
 
+curves:
+    ![dev](images/1563870010489.jpg)
