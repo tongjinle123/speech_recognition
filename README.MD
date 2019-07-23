@@ -17,4 +17,6 @@ use:
         bash scripts/train/*
         
 result:
-beam decode with lm cer:7.2 
+
+    beam decode with lm cer:7.2 
+
