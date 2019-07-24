@@ -1,12 +1,11 @@
-Speech Recognition
+**Speech Recognition**
 
 dataset: aishell1 
 
 Setup:
 
-    1.run docker 
-    2.setup beamdecodectc
-    
+    1.run docker
+    2.setup beamdecodectc followed as [this repo]<https://github.com/libai3/masr>
 use:
 
     download aishell:
