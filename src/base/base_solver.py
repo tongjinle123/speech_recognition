@@ -152,7 +152,7 @@ class BaseSolver(BaseClass):
             if le > max_len:
                 max_len = le
             average_loss += metrics.loss.item()
-            desc = f'ep: {self.global_epoch}, lr: {round(self.optimizer._rate, 5)}, ml: {max_len}, loss: {round(average_loss / (i+1), 3)}, cl:{round(metrics.loss.item(), 3)} cer: {round(metrics.cer.item(), 3)}'
+            desc = f'e:{self.global_epoch}, lr:{round(self.optimizer._rate, 4)}, loss:{round(average_loss / (i+1), 2)}, cl:{round(metrics.loss.item(), 2)} cer: {round(metrics.cer.item(), 2)}'
             train_bar.set_description(desc)
         # self.save_ckpt(metrics[self.reference[1:]])
         # self.evaluate(self.test_iter, 'test/')
@@ -161,7 +161,7 @@ class BaseSolver(BaseClass):
         print(f'\nEvaluating')
         self.model.eval()
         dev_metric_manager = MetricsManager()
-        dev_bar = tqdm(dev_iter, leave=True, total=len(dev_iter), disable=True)
+        dev_bar = tqdm(dev_iter, leave=True, total=len(dev_iter), disable=True, dynamic_ncols=True, ncols=100)
         average_loss = 0
         average_score = 0
         with t.no_grad():
