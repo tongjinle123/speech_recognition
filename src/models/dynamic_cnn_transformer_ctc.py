@@ -24,12 +24,12 @@ class DynamicCNNTransformerCTC(BaseModel):
     def load_default_config(cls):
         config = ConfigDict()
         config.add(
-            model_size=512,
+            model_size=1024,
             conv_size=64,
-            ff_size=512,
+            ff_size=1024,
             dropout=0.1,
-            num_head=8,
-            kernel_size_list=[3, 5, 7, 11, 31, 31, 31],
+            num_head=16,
+            kernel_size_list=[3, 5, 7, 11, 31, 31, 31, 31],
         )
         return config
 

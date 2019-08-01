@@ -11,6 +11,7 @@ from .feature_utils import build_LFR_features
 from .feature_utils import time_mask
 from .feature_utils import freq_mask
 from pyvad import trim
+import librosa
 
 
 class BaseParser(BaseClass):
@@ -50,7 +51,7 @@ class BaseParser(BaseClass):
         return config
 
     def _load_wav(self, wav_file):
-        sig, sample_rate = soundfile.read(wav_file)
+        sig, sample_rate = librosa.load(wav_file, sr=self.config.sample_rate)
         if self.config.use_vad:
             sig = trim(sig, sample_rate, fs_vad=self.config.sample_rate, hoplength=30, thr=0, vad_mode=2)
         return sig
@@ -111,15 +112,17 @@ class BaseParser(BaseClass):
         tensor_len = tensor.size(1)
         max_len = int(tensor_len * self.config.pt)
         T = min(max_len, self.config.T)
+        if T == 0:
+            T += 1
         tensor = time_mask(tensor, T=T, num_masks=self.config.num_T, replace_with_zero=True)
         tensor.squeeze_(0)
         tensor = tensor.numpy()
         return tensor
 
-    def parse_wav(self):
+    def parse_wav(self, path):
         raise NotImplementedError
 
-    def parse_word(self):
+    def parse_word(self, str):
         raise NotImplementedError
 
     def build_dataset(self):

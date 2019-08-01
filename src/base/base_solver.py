@@ -55,12 +55,13 @@ class BaseSolver(BaseClass):
         self.global_epoch = 0
         self.global_step = 0
 
-    def _init_model(self, model_path=None):
+    def _init_model(self, model_path=None, use_cuda=True):
         Model, _ = load_module(models, self.config.model_name)
         self.model = Model(self.config, self.vocab)
         if model_path is not None:
             self.model.load(model_path)
-        self.model.cuda()
+        if use_cuda:
+            self.model.cuda()
 
     def _init_parser(self):
         Parser, _ = load_module(parsers, self.config.parser_name)
@@ -130,7 +131,7 @@ class BaseSolver(BaseClass):
     def _train_epoch(self):
         self.model.train()
         max_len = 0
-        train_bar = tqdm(iterable=self.train_iter, leave=True, total=len(self.train_iter))
+        train_bar = tqdm(iterable=self.train_iter, leave=True, total=len(self.train_iter),ncols=75)
         average_loss = 0
         for i, data in enumerate(train_bar):
 
@@ -152,7 +153,7 @@ class BaseSolver(BaseClass):
             if le > max_len:
                 max_len = le
             average_loss += metrics.loss.item()
-            desc = f'e:{self.global_epoch}, lr:{round(self.optimizer._rate, 4)}, loss:{round(average_loss / (i+1), 2)}, cl:{round(metrics.loss.item(), 2)} cer: {round(metrics.cer.item(), 2)}'
+            desc = f'e:{self.global_epoch},loss:{round(average_loss / (i+1), 2)},cl:{round(metrics.loss.item(), 2)},cer:{round(metrics.cer.item(), 1)}'
             train_bar.set_description(desc)
         # self.save_ckpt(metrics[self.reference[1:]])
         # self.evaluate(self.test_iter, 'test/')
@@ -185,4 +186,5 @@ class BaseSolver(BaseClass):
         for i in pack:
             tmp_prefix = prefix + i
             self.summary_writer.add_scalar(tmp_prefix, pack[i].detach().cpu().numpy(), self.global_step)
+
 

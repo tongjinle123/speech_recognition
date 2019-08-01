@@ -26,5 +26,5 @@ def calculate_cer_ctc(pre, tgt):
     tgt = ''.join(tgt)
     pre = pre.split(' ')
     pre = ''.join(pre)
-    word_num = len(pre)
+    word_num = len(tgt)
     return Lev.distance(pre, tgt) / word_num
