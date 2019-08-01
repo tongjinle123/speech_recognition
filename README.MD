@@ -3,9 +3,8 @@
 dataset: aishell1 
 
 Setup:
-    1.run docker
-    2.setup beamdecodectc followed as [this repo](https://github.com/libai3/masr)
-
+    use docker: docker pull tongjinle/tasr:v1
+    
 use:
     download aishell:
         bash scripts/data/download_aishell.sh

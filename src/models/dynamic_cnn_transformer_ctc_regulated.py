@@ -110,7 +110,6 @@ class ParaDecoder(t.nn.Module):
         self.input_position = fs.modules.SinusoidalPositionalEmbedding(
             embedding_dim=model_size, padding_idx=padding_idx, init_size=300)
 
-
     def forward(self, encoder_output, input, encoder_output_padding_mask):
         pass
 
@@ -124,7 +123,6 @@ class ParaDecoderInputLayer(t.nn.Module):
         self.multi_head_attention = fs.modules.MultiheadAttention(embed_dim=model_size, num_heads=num_head)
 
     def forward(self, encoder_output):
-        batch_size = None
         pass
 
 
