@@ -16,7 +16,7 @@ def Monitor():
                     channels=CHANNELS,
                     rate=RATE,
                     input=True,
-                    frames_per_buffer=CHUNK)
+                    frames_per_buffer=CHUNK, encoding='utf8')
     print("开始缓存录音")
     frames = []
     while (True):

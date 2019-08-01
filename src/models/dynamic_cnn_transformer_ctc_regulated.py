@@ -6,11 +6,13 @@ from src.base.utils import Masker
 from .utils.score import calculate_cer_ctc
 from src.base.utils import Pack
 from ctcdecode import CTCBeamDecoder
-fs.modules.adaptive_softmax
 
-class DynamicCNNTransformerCTCRegulated(BaseModel):
+
+
+
+class DynamicCNNTransformerParaDecode(BaseModel):
     def __init__(self, config, vocab):
-        super(DynamicCNNTransformerCTCRegulated, self).__init__(config=config)
+        super(DynamicCNNTransformerParaDecode, self).__init__(config=config)
         self.vocab = vocab
         self.input_layer = InputLayer(config.input_size, config.model_size, config.dropout)
         self.encoder = DynamicCnnTransformerEncoder(
@@ -102,10 +104,28 @@ class DynamicCNNTransformerCTCRegulated(BaseModel):
         return pack
 
 
-class Regulator(t.nn.Module):
-    def __init__(self):
-        super(Regulator, self).__init__()
+class ParaDecoder(t.nn.Module):
+    def __init__(self, model_size, padding_idx=0, ):
+        super(ParaDecoder, self).__init__()
+        self.input_position = fs.modules.SinusoidalPositionalEmbedding(
+            embedding_dim=model_size, padding_idx=padding_idx, init_size=300)
 
+
+    def forward(self, encoder_output, input, encoder_output_padding_mask):
+        pass
+
+
+class ParaDecoderInputLayer(t.nn.Module):
+    def __init__(self, model_size, num_head, padding_idx=0):
+        super(ParaDecoderInputLayer, self).__init__()
+        self.input_postion_embedding = fs.modules.SinusoidalPositionalEmbedding(
+            embedding_dim=model_size, padding_idx=padding_idx
+        )
+        self.multi_head_attention = fs.modules.MultiheadAttention(embed_dim=model_size, num_heads=num_head)
+
+    def forward(self, encoder_output):
+        batch_size = None
+        pass
 
 
 class InputLayer(t.nn.Module):

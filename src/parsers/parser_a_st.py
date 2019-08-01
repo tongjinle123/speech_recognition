@@ -5,9 +5,9 @@ from torch.utils.data import Dataset, DataLoader
 from .utils import Padder
 
 
-class ParserAishell(BaseParser):
+class ParserAST(BaseParser):
     def __init__(self, config):
-        super(ParserAishell, self).__init__(config)
+        super(ParserAST, self).__init__(config)
 
 
     @classmethod
@@ -57,22 +57,20 @@ class ParserAishell(BaseParser):
         id = self.vocab.convert_str(str, False, False)
         return id
 
-    def _build_iter(self, manifist_file, if_augment, if_filter_duration=False):
+    def _build_iter(self, manifist_file, if_augment, if_filter_duration=False, other_manifist=None):
         max_duration=None if not if_filter_duration else self.config.train_max_duration
         dataset = AishellDataSet(manifist_file, if_augment=if_augment, max_duration=max_duration, parser=self)
+        if other_manifist is not None:
+            otherdataset = AishellDataSet(other_manifist, if_augment=if_augment, max_duration=max_duration, parser=self)
+            dataset = t.utils.data.ConcatDataset([dataset, otherdataset])
         dataloader = DataLoader(
             dataset, batch_size=self.config.batch_size, shuffle=True, num_workers=self.config.num_worker,
             collate_fn=collate_fn, drop_last=True)
         return dataloader
 
-    def parser_wav_inference(self, path):
-        feature = self.parse_wav(path, if_augment=False)
-        feature = feature.unsqueeze(0)
-        length = t.LongTensor([feature.size(1)])
-        return feature, length
-
     def build_iters(self):
-        train_iter = self._build_iter('data/data_aishell/train.manifist', if_augment=True, if_filter_duration=True)
+        train_iter = self._build_iter('data/data_aishell/train.manifist', if_augment=True, if_filter_duration=True,
+                                      other_manifist='data/ST-CMDS-20170001_1-OS/st.manifist')
         dev_iter = self._build_iter('data/data_aishell/dev.manifist', if_augment=False, if_filter_duration=False)
         test_iter = self._build_iter('data/data_aishell/test.manifist', if_augment=False, if_filter_duration=False)
         return train_iter, dev_iter, test_iter

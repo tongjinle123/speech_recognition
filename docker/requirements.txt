@@ -17,3 +17,5 @@ seaborn
 pillow
 python-Levenshtein
 fairseq
+pydub
+flask
