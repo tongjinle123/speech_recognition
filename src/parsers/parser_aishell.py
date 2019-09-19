@@ -62,7 +62,7 @@ class ParserAishell(BaseParser):
         dataset = AishellDataSet(manifist_file, if_augment=if_augment, max_duration=max_duration, parser=self)
         dataloader = DataLoader(
             dataset, batch_size=self.config.batch_size, shuffle=True, num_workers=self.config.num_worker,
-            collate_fn=collate_fn, drop_last=True)
+            collate_fn=collate_fn, drop_last=True, pin_memory=False)
         return dataloader
 
     def parser_wav_inference(self, path):

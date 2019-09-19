@@ -8,8 +8,6 @@ from src.base.utils import Pack
 from ctcdecode import CTCBeamDecoder
 
 
-
-
 class DynamicCNNTransformerParaDecode(BaseModel):
     def __init__(self, config, vocab):
         super(DynamicCNNTransformerParaDecode, self).__init__(config=config)
@@ -107,8 +105,9 @@ class DynamicCNNTransformerParaDecode(BaseModel):
 class ParaDecoder(t.nn.Module):
     def __init__(self, model_size, padding_idx=0, ):
         super(ParaDecoder, self).__init__()
-        self.input_position = fs.modules.SinusoidalPositionalEmbedding(
+        self.input_position_embedding = fs.modules.SinusoidalPositionalEmbedding(
             embedding_dim=model_size, padding_idx=padding_idx, init_size=300)
+        self.register_buffer('fixed_input')
 
     def forward(self, encoder_output, input, encoder_output_padding_mask):
         pass

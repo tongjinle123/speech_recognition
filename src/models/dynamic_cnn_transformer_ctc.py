@@ -24,11 +24,11 @@ class DynamicCNNTransformerCTC(BaseModel):
     def load_default_config(cls):
         config = ConfigDict()
         config.add(
-            model_size=1024,
+            model_size=512,
             conv_size=64,
             ff_size=1024,
             dropout=0.1,
-            num_head=16,
+            num_head=8,
             kernel_size_list=[3, 5, 7, 11, 31, 31, 31],
         )
         return config
@@ -81,7 +81,7 @@ class DynamicCNNTransformerCTC(BaseModel):
         output, output_len = self.forward(input)
 
         metrics = self.cal_metrics(output, output_len, input['tgt'], input['tgt_len'])
-        if optimizer is not None and is_train:
+        if optimizer is not None and is_train and metrics.loss!=-100:
             optimizer.zero_grad()
             metrics.loss.backward()
             t.nn.utils.clip_grad_norm_(self.parameters(), 5.0)
@@ -94,12 +94,18 @@ class DynamicCNNTransformerCTC(BaseModel):
         log_prob = t.nn.functional.log_softmax(output, -1).transpose(0, 1)
         # t b c
         loss = _loss(log_prob, tgt, output_len, tgt_len)
-        assert not t.isinf(loss)
-        output_str = self.decode(output, output_len)
-        tgt_str = [self.vocab.convert_id2str(i) for i in tgt]
-        cer = sum([calculate_cer_ctc(i[0], i[1]) for i in zip(output_str, tgt_str)]) * 100 / len(output_str)
-        pack.add(loss=loss, cer=t.Tensor([cer]))
-        return pack
+        if t.isinf(loss):
+            loss = -100
+            cer = 100
+            pack.add(loss=loss, cer=t.Tensor([cer]))
+            print('inf loss skiped')
+            return pack
+        else:
+            output_str = self.decode(output, output_len)
+            tgt_str = [self.vocab.convert_id2str(i) for i in tgt]
+            cer = sum([calculate_cer_ctc(i[0], i[1]) for i in zip(output_str, tgt_str)]) * 100 / len(output_str)
+            pack.add(loss=loss, cer=t.Tensor([cer]))
+            return pack
 
 
 class InputLayer(t.nn.Module):

@@ -52,9 +52,13 @@ class BaseParser(BaseClass):
 
     def _load_wav(self, wav_file):
         sig, sample_rate = librosa.load(wav_file, sr=self.config.sample_rate)
+        tmp = sig
         if self.config.use_vad:
             sig = trim(sig, sample_rate, fs_vad=self.config.sample_rate, hoplength=30, thr=0, vad_mode=2)
-        return sig
+        if sig is None:
+            return tmp
+        else:
+            return sig
 
     def _feature_mel(self, signal):
         tensor = python_speech_features.logfbank(

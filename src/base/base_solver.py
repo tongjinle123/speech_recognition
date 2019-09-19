@@ -9,7 +9,7 @@ from src import models
 from src import parsers
 from tqdm import tqdm
 from src.base.utils import MetricsManager
-
+from prefetch_generator import BackgroundGenerator
 
 
 def get_time():
@@ -31,7 +31,6 @@ class BaseSolver(BaseClass):
             num_epoch=200,
             warm_up=25000,
             factor=0.8,
-            smoothing=0.0,
             log_every_iter=100,
             eval_every_iter=5000,
             save_every_iter=5000,
@@ -136,25 +135,30 @@ class BaseSolver(BaseClass):
         for i, data in enumerate(train_bar):
 
             data = {i: v.cuda() for i, v in data.items()}
-            metrics, _ = self.model.iterate(data, optimizer=self.optimizer, is_train=True)
-            lr = self.optimizer.rate()
-            self.summary_writer.add_scalar('lr', lr, self.global_step)
+            try:
+                metrics, _ = self.model.iterate(data, optimizer=self.optimizer, is_train=True)
+                if self.global_step % self.config.log_every_iter == 0 and self.global_step != 0:
+                    self.summarize(metrics, 'train/')
 
-            if self.global_step % self.config.log_every_iter == 0 and self.global_step != 0:
-                self.summarize(metrics, 'train/')
+                self.global_step += 1
+                if self.global_step % self.config.eval_every_iter == 0 and self.global_step != 0:
+                    self.evaluate(self.dev_iter, 'dev/')
 
-            self.global_step += 1
-            if self.global_step % self.config.eval_every_iter == 0 and self.global_step != 0:
-                self.evaluate(self.dev_iter, 'dev/')
+                if self.global_step % self.config.save_every_iter == 0 and self.global_step != 0:
+                    self._save()
+                le = data['wave'].size(1)
+                if le > max_len:
+                    max_len = le
+                average_loss += metrics.loss.item()
+                desc = f'e:{self.global_epoch},loss:{round(average_loss / (i+1), 2)},cl:{round(metrics.loss.item(), 2)},cer:{round(metrics.cer.item(), 1)}'
+                train_bar.set_description(desc)
+            except:
+                print('bad iter')
+                t.save(data, 'err_data.t')
+            #lr = self.optimizer.rate()
+            #self.summary_writer.add_scalar('lr', lr, self.global_step)
 
-            if self.global_step % self.config.save_every_iter == 0 and self.global_step != 0:
-                self._save()
-            le = data['wave'].size(1)
-            if le > max_len:
-                max_len = le
-            average_loss += metrics.loss.item()
-            desc = f'e:{self.global_epoch},loss:{round(average_loss / (i+1), 2)},cl:{round(metrics.loss.item(), 2)},cer:{round(metrics.cer.item(), 1)}'
-            train_bar.set_description(desc)
+
         # self.save_ckpt(metrics[self.reference[1:]])
         # self.evaluate(self.test_iter, 'test/')
 
