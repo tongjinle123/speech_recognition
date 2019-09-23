@@ -1,7 +1,7 @@
 from src.base.base_solver import BaseSolver
 from src.base.base_config import ConfigDict
 from .utils.optimizer import AdamW, NoamOpt, RAdam
-
+from torch.optim import Adam
 
 class Solver(BaseSolver):
     def __init__(self, config):
@@ -24,9 +24,12 @@ class Solver(BaseSolver):
         )
         return config
 
-    def _init_optimizer(self):
-        self.optimizer = RAdam(self.model.parameters())
-#         self.optimizer = NoamOpt(
-#             self.config.model_size, factor=self.config.factor, warmup=self.config.warm_up, optimizer=optimizer)
+    def _init_optimizer(self, optimizer_path=None):
 
+        optimizer = AdamW(self.model.parameters(), lr=3e-4, betas=(0.9, 0.98), eps=1e-09)
+        self.optimizer = NoamOpt(
+            self.config.model_size, factor=self.config.factor, warmup=self.config.warm_up, optimizer=optimizer)
 
+        if optimizer_path is not None:
+            self.optimizer.load(optimizer_path)
+            

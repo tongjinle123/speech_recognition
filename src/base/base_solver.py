@@ -11,7 +11,6 @@ from tqdm import tqdm
 from src.base.utils import MetricsManager
 from prefetch_generator import BackgroundGenerator
 
-
 def get_time():
     return (datetime.datetime.now() + datetime.timedelta(hours=8)).strftime("%Y%m%d_%H%M_%S")
 
@@ -82,6 +81,7 @@ class BaseSolver(BaseClass):
         tmp_exp_name = self.config.exp_name
         tmp_experiment_root = self.config.experiment_root
         model_path, optimizer_path, epoch, step, old_yaml_path = self._extract_ckptname(from_ckpt)
+        print('opt_path', optimizer_path)
         self.config = ConfigDict()
         self.config.load(old_yaml_path)
         self.config.exp_name = tmp_exp_name

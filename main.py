@@ -40,6 +40,7 @@ def train(**kwargs):
     print(solver.config.parser_name)
     solver._init_experiment()
     if configs.from_ckpt is not None:
+        print(configs.from_ckpt)
         solver.train_from_ckpt(configs.from_ckpt)
     else:
         solver.train_from_scrach()
