@@ -5,16 +5,16 @@ from torch.utils.data import Dataset, DataLoader
 from .utils import Padder
 
 
-class ParserAishell(BaseParser):
+class ParserAishell2Pre(BaseParser):
     def __init__(self, config):
-        super(ParserAishell, self).__init__(config)
+        super(ParserAishell2Pre, self).__init__(config)
 
 
     @classmethod
     def load_default_config(cls) -> ConfigDict:
         config = ConfigDict()
         config.add(
-            batch_size=64,
+            batch_size=32,
             sample_rate=16000,
             n_mels=80,
             window_size=0.025,
@@ -27,14 +27,15 @@ class ParserAishell(BaseParser):
             speed_min=0.9,
             speed_max=1.1,
             use_vad=True,
-            num_worker=16,
+            num_worker=32,
             F=27,
             T=25,
             pt=0.2,
             num_T=1,
             num_F=2,
             train_max_duration=10,
-            vocab_path='data/data_aishell/vocab.t'
+            vocab_path='data/AISHELL-2/iOS/data/vocab.t',
+            predump_path='data/aishell2_predump/'
         )
         input_size = config.n_mels * config.num_stack
         config.add(input_size=input_size)
@@ -43,13 +44,15 @@ class ParserAishell(BaseParser):
     def parse_wav(self, path, if_augment=False):
         sig = self._load_wav(path)
         if if_augment:
-            sig = self._aug_speed(sig)
-
+            try:
+                sig = self._aug_speed(sig)
+            except:
+                print(path)
         feature = self._feature_mel(sig)
         feature = self._feature_lfr(feature)
         feature = self._normalize(feature)
         if if_augment:
-            feature = self._aug_freq_time_mask(feature)
+            feature = self._spec_augment(feature)
         feature = t.from_numpy(feature)
         return feature
 
@@ -58,7 +61,7 @@ class ParserAishell(BaseParser):
         return id
 
     def _build_iter(self, manifist_file, if_augment, if_filter_duration=False):
-        max_duration=None if not if_filter_duration else self.config.train_max_duration
+        max_duration = None if not if_filter_duration else self.config.train_max_duration
         dataset = AishellDataSet(manifist_file, if_augment=if_augment, max_duration=max_duration, parser=self)
         dataloader = DataLoader(
             dataset, batch_size=self.config.batch_size, shuffle=True, num_workers=self.config.num_worker,
@@ -72,9 +75,9 @@ class ParserAishell(BaseParser):
         return feature, length
 
     def build_iters(self):
-        train_iter = self._build_iter('data/data_aishell/train.manifist', if_augment=True, if_filter_duration=True)
-        dev_iter = self._build_iter('data/data_aishell/dev.manifist', if_augment=False, if_filter_duration=False)
-        test_iter = self._build_iter('data/data_aishell/test.manifist', if_augment=False, if_filter_duration=False)
+        train_iter = self._build_iter('data/AISHELL-2/iOS/data/train.manifist', if_augment=True, if_filter_duration=True)
+        dev_iter = self._build_iter('data/AISHELL-2/iOS/data/dev.manifist', if_augment=False, if_filter_duration=False)
+        test_iter = self._build_iter('data/AISHELL-2/iOS/data/test.manifist', if_augment=False, if_filter_duration=False)
         return train_iter, dev_iter, test_iter
 
 
@@ -103,3 +106,4 @@ def collate_fn(batch):
     features, feature_len = Padder.pad_tri(features, 0)
     tgts, tgt_len = Padder.pad_two(tgts, 0)
     return {'wave': features, 'wave_len': t.LongTensor(feature_len), 'tgt': tgts.long(), 'tgt_len': t.LongTensor(tgt_len)}
+

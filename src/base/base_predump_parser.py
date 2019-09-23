@@ -8,15 +8,14 @@ import numpy as np
 import random
 import torch as t
 from .feature_utils import build_LFR_features
-from .feature_utils import time_mask
-from .feature_utils import freq_mask
+from .feature_utils import spec_augment
 from pyvad import trim
 import librosa
 
 
-class BaseParser(BaseClass):
+class BasePredumpParser(BaseClass):
     def __init__(self, config):
-        super(BaseParser, self).__init__()
+        super(BasePredumpParser, self).__init__()
         self.config = config
         self.load_vocab()
 
@@ -41,8 +40,8 @@ class BaseParser(BaseClass):
             speed_max=1.1,
             use_vad=True,
             num_worker=16,
-            F=27,
-            T=25,
+            F=20,
+            T=17,
             pt=0.2,
             num_T=2,
             num_F=2,
@@ -99,8 +98,7 @@ class BaseParser(BaseClass):
         feature = build_LFR_features(tensor, self.config.num_stack, self.config.num_skip)
         return feature
 
-    def _aug_speed(self, sig):
-        speed_rate = random.Random().uniform(self.config.speed_min, self.config.speed_max)
+    def _aug_speed(self, sig, speed_rate):
         old_length = sig.shape[0]
         new_length = int(sig.shape[0] / speed_rate)
         old_indices = np.arange(old_length)
@@ -108,20 +106,9 @@ class BaseParser(BaseClass):
         nsig = np.interp(new_indices, old_indices, sig)
         return nsig
 
-    def _aug_freq_time_mask(self, tensor):
+    def _spec_augment(self, tensor):
         if not isinstance(tensor, t.Tensor):
             tensor = t.from_numpy(tensor)
-        tensor.unsqueeze_(0)
-        tensor = freq_mask(tensor, F=self.config.F, num_masks=self.config.num_F, replace_with_zero=True)
-        tensor_len = tensor.size(1)
-        max_len = int(tensor_len * self.config.pt)
-        T = min(max_len, self.config.T)
-        if T == 0:
-            T += 1
-        tensor = time_mask(tensor, T=T, num_masks=self.config.num_T, replace_with_zero=True)
-        tensor.squeeze_(0)
-        tensor = tensor.numpy()
-        return tensor
 
     def parse_wav(self, path):
         raise NotImplementedError
